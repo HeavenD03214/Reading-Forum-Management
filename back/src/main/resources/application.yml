@@ -1,0 +1,76 @@
+spring:
+  #数据库连接信息
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: 
+    username: 
+    password: 
+  #单个文件最大上传大小，一次最多上传文件大小
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+
+  mail:
+    # 发送者邮箱
+    username: 
+    #申请到的授权码
+    password: 
+    # 配置 SMTP 服务器地址
+    host: smtp.qq.com
+    # 端口号465或587
+    port: 465
+    protocol: smtps
+    # 默认的邮件编码为UTF-8
+    default-encoding: UTF-8
+    # 配置SSL 加密工厂
+    properties:
+      mail:
+        smtp:
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+          #表示开启 DEBUG 模式，这样，邮件发送过程的日志会在控制台打印出来，方便排查错误
+          debug: true
+          ssl: true
+
+#mybatis配置信息
+mybatis:
+  configuration:
+    #日志输出到控制台
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #驼峰命名
+    map-underscore-to-camel-case: true
+
+#阿里云配置
+aliyun:
+  oss:
+    #外域访问域名
+    endpoint:
+    bucketName: 
+
+#spring事务管理日志
+logging:
+  level:
+    org.springframework.jdbc.support.JdbcTransactionManager: debug
+
+server:
+  port: 4090
+
+alipay:
+  appId: 
+  appPrivateKey: 
+  alipayPublicKey:
+  notifyUrl:  
+
+author:
+  registerMoney: 1145.14
+
+
+attendance:
+  sign-in-prize: 11.45
+
+card-level:
+  level-b : 7700
+  level-a : 2000
+  level-s : 300
+  denominator : 10000
+  price: 50.00

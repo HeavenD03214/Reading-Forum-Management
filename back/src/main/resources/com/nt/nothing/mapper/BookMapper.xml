@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.nothing.mapper.BookMapper">
+
+    <resultMap id="bookResultMap" type="com.nt.nothing.pojo.Book">
+        <result property="id" column="id" />
+
+        <result property="book_name" column="book_name" />
+
+        <result property="classification" column="classification" />
+
+        <result property="author" column="author" />
+
+        <result property="publisher" column="publisher" />
+
+        <result property="intro" column="intro" />
+    </resultMap>
+
+    <insert id="addBook">
+        insert into book(book_name, classification, publisher, intro, author)
+        VALUES(#{book_name},#{classification},#{publisher},#{intro},#{author})
+    </insert>
+    <insert id="addC">
+        insert into classification(classification) values (#{classification})
+    </insert>
+
+    <update id="updateBook">
+        update book
+        <set>
+            <if test="book_name != null and book_name != ''">
+                book_name = #{book_name},
+            </if>
+            <if test="classification != null and classification != ''">
+                classification = #{classification},
+            </if>
+            <if test="publisher != null and publisher != ''">
+                publisher = #{publisher},
+            </if>
+            <if test="intro != null and intro != ''">
+                intro = #{intro},
+            </if>
+            <if test="author != null">
+                author = #{author},
+            </if>
+        </set>
+        Where id = #{id}
+    </update>
+    <update id="updateC">
+        update classification
+        set classification = #{classification}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from book
+        where author = #{id}
+    </delete>
+
+    <delete id="deleteByIds">
+        delete
+        from book
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteByC">
+        delete from book
+        where classification = #{id}
+    </delete>
+    <delete id="deleteC">
+        delete from classification
+        where id = #{id}
+    </delete>
+
+    <select id="list" resultMap="bookResultMap">
+        select
+                b.id as id,
+                b.book_name as book_name,
+                a.name as author,
+                c.classification as classification,
+                p.publisher as publisher,
+                b.intro as intro
+        from book b
+        left join author a on  b.author = a.id
+        left join classification c on b.classification = c.id
+        left join publisher p on  b.publisher = p.id
+
+        <where>
+            <if test="book_name != null and book_name != ''">
+                b.book_name like concat('%', #{book_name}, '%')
+            </if>
+            <if test="classification != null and classification != ''">
+                and c.classification like concat('%', #{classification}, '%')
+            </if>
+            <if test="publisher != null and publisher != ''">
+                and p.publisher like concat('%', #{publisher}, '%')
+            </if>
+            <if test="author != null and author != ''">
+                and a.name like concat('%', #{author}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="isExistByBookName" resultType="java.lang.Integer">
+        select count(0) from book
+        where book_name = #{bookName}
+    </select>
+    <select id="cExistByCName" resultType="java.lang.Integer">
+        select count(0) from classification
+        where classification = #{classification}
+    </select>
+    <select id="listC" resultType="com.nt.nothing.pojo.Classification">
+        select * from classification c
+        <where>
+            <if test="classification != null and classification != ''">
+                 c.classification like concat('%', #{classification}, '%')
+            </if>
+        </where>
+    </select>
+
+
+    <select id="listA" resultType="com.nt.nothing.pojo.searchAuthor">
+        select a.id, a.user_id as userId ,a.name as authorname,
+               u.username,u.name, u.gender,
+               u.image, u.email, u.province,
+               u.area, u.birthday, u.emailcode,
+                m.balance
+        from author a
+        left join user u on a.user_id = u.id
+        left join money m on a.user_id = m.user_id
+        <where>
+            <if test="name != null and name != ''">
+                u.name like concat('%', #{name}, '%')
+            </if>
+            <if test="gender != null">
+                and u.gender = #{gender}
+            </if>
+            <if test="province != null and province != ''">
+                and u.province like concat('%', #{province}, '%')
+            </if>
+            <if test="area != null and area != ''">
+                and u.area like concat('%', #{area}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                and u.username like concat('%', #{username}, '%')
+            </if>
+            <if test="authorName != null and authorName != ''">
+                and a.name like concat('%', #{authorName}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="listAd" resultType="com.nt.nothing.pojo.searchAdmin">
+        select a.id, a.user_id as userId,
+        u.username,u.name, u.gender,
+        u.image, u.email, u.province,
+        u.area, u.birthday, u.emailcode,
+        m.balance
+        from admin a
+        left join user u on a.user_id = u.id
+        left join money m on a.user_id = m.user_id
+        <where>
+            <if test="name != null and name != ''">
+                u.name like concat('%', #{name}, '%')
+            </if>
+            <if test="gender != null">
+                and u.gender = #{gender}
+            </if>
+            <if test="province != null and province != ''">
+                and u.province like concat('%', #{province}, '%')
+            </if>
+            <if test="area != null and area != ''">
+                and u.area like concat('%', #{area}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                and u.username like concat('%', #{username}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="listAll" resultType="com.nt.nothing.pojo.searchAll">
+        select u.id,
+        u.username,u.name, u.gender,
+        u.image, u.email, u.province,
+        u.area, u.birthday, u.emailcode,
+        m.balance,a.id as author,ad.id as admin
+        from user u
+        left join author a on u.id = a.user_id
+        left join admin ad on u.id = ad.user_id
+        left join money m on u.id = m.user_id
+        <where>
+            <if test="name != null and name != ''">
+                u.name like concat('%', #{name}, '%')
+            </if>
+            <if test="gender != null">
+                and u.gender = #{gender}
+            </if>
+            <if test="province != null and province != ''">
+                and u.province like concat('%', #{province}, '%')
+            </if>
+            <if test="area != null and area != ''">
+                and u.area like concat('%', #{area}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                and u.username like concat('%', #{username}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="searchAllC" resultType="com.nt.nothing.pojo.Classification">
+        select classification.classification
+        from classification
+    </select>
+    <select id="searchAllP" resultType="com.nt.nothing.pojo.Publisher">
+        select publisher.publisher from publisher
+    </select>
+
+
+
+</mapper>

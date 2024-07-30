@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.nothing.mapper.ChatMapper">
+    <insert id="addFriendRequest">
+        insert into friend(send, receive, state) VALUES (#{send},#{receive},#{state})
+    </insert>
+
+    <insert id="addMsg">
+        insert into message(send, receive, msg, time, state) VALUES (#{send},#{receive},#{msg},#{time},#{state})
+    </insert>
+
+
+    <update id="updateFriendState">
+        update friend set state = #{state}
+        where send = #{send} and receive = #{receive}
+    </update>
+
+    <update id="updateMsgState">
+        update message set state = 1
+        where send = #{send} and receive = #{receive}
+    </update>
+    <update id="updateMsgLastState">
+        update message set state = 1
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFriendRequest">
+        delete from friend
+        where send = #{send} and receive = #{receive}
+    </delete>
+    <delete id="deleteMsgById">
+        delete from message
+        where id =#{msg}
+    </delete>
+    <delete id="deleteMsgByFriend">
+        delete from message
+        where send = #{send} and receive = #{receive}
+    </delete>
+
+
+    <select id="FriendRequestSearch" resultType="java.lang.Integer">
+        select friend.send
+        from friend
+        where receive = #{id} and state = 0
+    </select>
+
+    <select id="FriendRequestSearchByIds" resultType="com.nt.nothing.pojo.FriendRequest">
+        select u.id,u.username,u.name,u.gender,u.image
+        from user u
+        where u.id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getMsgByFriend" resultType="com.nt.nothing.pojo.searchChatMsg">
+        select m.id,m.send,m.msg,m.time ,u.name,u.username
+        from message m
+        left join user u on u.id = m.send
+        where (send = #{send} and receive = #{receive}) or (send = #{receive} and receive = #{send})
+        order by id
+    </select>
+
+
+    <select id="friendSearch" resultType="java.lang.Integer">
+        select f.receive from friend f
+        where f.send = #{id} and f.state = 1
+    </select>
+
+    <select id="publicFriendGet" resultType="com.nt.nothing.pojo.FriendList">
+        SELECT u.id,
+               u.username,
+               u.name,
+               m.msg,
+               m.time,
+               m.send
+        FROM user u
+                 LEFT JOIN (SELECT m1.*
+                            FROM message m1
+                                     JOIN (SELECT MAX(m2.id) AS max_id
+                                           FROM message m2
+                                           WHERE m2.receive = 0
+                                           GROUP BY m2.send) AS max_msg
+                                            ON m1.id = max_msg.max_id) AS m ON m.send = u.id
+    </select>
+
+    <select id="publicMsgGetAll" resultType="com.nt.nothing.pojo.searchChatMsg">
+        select m.id,m.send,m.msg,m.time ,u.name,u.username
+        from message m
+                 left join user u on u.id = m.send
+        where m.receive = 0
+        order by m.id
+    </select>
+    <select id="friendSingleGet" resultType="com.nt.nothing.pojo.FriendList">
+        SELECT u.id,
+               u.username,
+               u.name,
+               u.image,
+               m.msg,
+               m.time,
+               m.send
+        FROM user u
+                 LEFT JOIN (SELECT m1.*
+                            FROM message m1
+                                     JOIN (SELECT MAX(m2.id) AS max_id
+                                           FROM message m2
+                                           WHERE (m2.receive = #{send} AND m2.send = #{receive})
+                                              OR (m2.receive = #{receive} AND m2.send = #{send})) AS max_msg
+                                            ON m1.id = max_msg.max_id) AS m ON m.receive = #{send} OR m.send = #{send}
+        where u.id = #{send}
+        group by u.id, u.username, u.name, m.msg, m.time, m.send
+    </select>
+
+    <select id="getMsgByFriendLast" resultType="com.nt.nothing.pojo.searchChatMsg">
+        select m.id,m.send,m.msg,m.time ,u.name,u.username
+        from message m
+                 left join user u on u.id = m.send
+        where ((m.receive = #{send} AND m.send = #{receive})
+           OR (m.receive = #{receive} AND m.send = #{send})) and (m.id = (select max(m2.id) from message m2 where (m2.receive = #{send} AND m2.send = #{receive})
+                                                                               OR (m2.receive = #{receive} AND m2.send = #{send})))
+    </select>
+
+    <select id="publicMsgGetLast" resultType="com.nt.nothing.pojo.searchChatMsg">
+        select m.id,m.send,m.msg,m.time ,u.name,u.username
+        from message m
+                 left join user u on u.id = m.send
+        where m.receive = 0 and m.id = (select max(m2.id) from message m2 where m2.receive = 0)
+    </select>
+    <select id="searchFriendRequestOne" resultType="com.nt.nothing.pojo.FriendMsg">
+        select * from friend
+        where receive = #{receive} and send = #{send}
+    </select>
+    <select id="getUnRead" resultType="java.lang.Integer">
+        select count(*) from message
+        where send = #{send} and receive = #{receive} and state = 0
+    </select>
+    <select id="friendPublicGet" resultType="com.nt.nothing.pojo.FriendList">
+
+    </select>
+
+
+</mapper>

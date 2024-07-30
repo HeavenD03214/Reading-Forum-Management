@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.nothing.mapper.UserMapper">
+
+    <insert id="addUser">
+        insert into user(id, username, password, name, gender, image, email, province, area, birthday, emailcode)
+        VALUES (#{id},#{username},#{password},#{name},#{gender},#{image},#{email},#{province},#{area},#{birthday},#{emailcode})
+    </insert>
+
+    <insert id="addAuthor">
+        insert into author(name, user_id)
+        VALUES (#{name},#{id})
+    </insert>
+    <insert id="addAdmin">
+        insert into admin(user_id)
+        VALUES (#{id})
+    </insert>
+    <insert id="addSignIn">
+        insert into attendance(id, time)
+        values (#{id},#{time})
+    </insert>
+
+    <update id="userUpdate">
+        update user
+        <set>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+                gender = #{gender},
+            <if test="image != null and image != ''">
+                image = #{image},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            <if test="province != null and province != ''">
+                province = #{province},
+            </if>
+            <if test="area != null and area != ''">
+                area = #{area},
+            </if>
+            <if test="birthday != null">
+                birthday = #{birthday},
+            </if>
+            <if test="emailcode != null and emailcode != ''">
+                emailcode = #{emailcode}
+            </if>
+        </set>
+        Where id = #{id}
+    </update>
+    <update id="authorUpdate">
+        update author
+        set name = #{name}
+        where user_id = #{id}
+    </update>
+    <update id="updateSignIn">
+        update attendance
+        set time = #{now}
+        where id = #{id}
+    </update>
+    <delete id="deleteById">
+        delete
+        from user
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteAuthorById">
+        delete
+        from author
+        where author.user_id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="cancelAuthorById">
+        delete from author
+        where user_id = #{id}
+    </delete>
+
+    <delete id="deleteAdminById">
+        delete from admin
+        where user_id = #{id}
+    </delete>
+
+    <delete id="deleteByIds">
+        delete
+        from user
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteAdminByIds">
+        delete
+        from admin
+        where admin.user_id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="searchByNameAndPassWord" resultType="com.nt.nothing.pojo.User">
+        select *
+        from user
+        where username = #{username} and password = #{password}
+    </select>
+    <select id="searchAdmin" resultType="com.nt.nothing.pojo.Admin">
+        select *
+        from admin
+        where user_id = #{id}
+    </select>
+    <select id="searchAuthor" resultType="com.nt.nothing.pojo.Author">
+        select *
+        from author
+        where user_id = #{id}
+    </select>
+    <select id="searchIdByUserName" resultType="java.lang.Integer">
+        select id from user
+        where username = #{username}
+    </select>
+    <select id="isExistByUserName" resultType="java.lang.Integer">
+        select count(0) from user
+        where username = #{username}
+    </select>
+    <select id="isExistById" resultType="java.lang.Integer">
+        select count(0) from user
+        where id = #{id}
+    </select>
+    <select id="isAuthor" resultType="java.lang.Integer">
+        select count(0) from author
+        where user_id = #{id}
+    </select>
+    <select id="getIdByAuthorName" resultType="java.lang.Integer">
+        select user_id from author
+        where name = #{author}
+    </select>
+    <select id="getclassificationByName" resultType="java.lang.Integer">
+        select id from classification
+        where classification = #{classification}
+    </select>
+    <select id="getpublisherByName" resultType="java.lang.Integer">
+        select id from publisher
+        where publisher = #{publisher}
+    </select>
+    <select id="list" resultType="com.nt.nothing.pojo.searchUser">
+        select u.id, u.username, u.name, u.gender, u.image, u.email, u.province, u.area, u.birthday, u.emailcode,
+        m.balance
+        from user u
+        left join money m on u.id = m.user_id
+        <where>
+            <if test="name != null and name != ''">
+                u.name like concat('%', #{name}, '%')
+            </if>
+            <if test="gender != null">
+                and u.gender = #{gender}
+            </if>
+            <if test="province != null and province != ''">
+                and u.province like concat('%', #{province}, '%')
+            </if>
+            <if test="area != null and area != ''">
+                and u.area like concat('%', #{area}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="getBalance" resultType="java.lang.Double">
+        select money.balance from money where id = #{id}
+    </select>
+    <select id="searchById" resultType="com.nt.nothing.pojo.searchAll">
+        select u.id, u.username, u.name,
+               u.gender, u.image, u.email,
+               u.province, u.area, u.birthday,
+               u.emailcode,m.balance,a.id as author,ad.id as admin
+        from user u
+        left join money m on m.user_id = u.id
+        left join author a on a.user_id = u.id
+        left join admin ad on u.id = ad.user_id
+        where u.id = #{id}
+    </select>
+    <select id="getSignDateById" resultType="java.time.LocalDate">
+        select attendance.time from attendance
+        where id = #{id}
+    </select>
+
+
+    <select id="getAllId" resultType="java.lang.Integer">
+        select user.id from user where id != #{send};
+    </select>
+    <select id="getByNameById" resultType="java.lang.String">
+        select user.name from user where id = #{id}
+    </select>
+    <select id="getUserNameById" resultType="java.lang.String">
+        select user.username
+        from user
+        where id = #{id}
+    </select>
+    <select id="getAuthorIdByAuthorName" resultType="java.lang.Integer">
+        select author.id from author where name = #{author}
+    </select>
+
+</mapper>
